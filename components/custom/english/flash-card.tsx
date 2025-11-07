@@ -246,24 +246,35 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[950px] max-w-[95%] p-4 sm:p-6 h-[90vh] flex flex-col">
-        <DialogHeader className="p-0 flex flex-row items-center justify-between">
+        
+        {/* SỬA: DialogHeader chỉ chứa tiêu đề, nút đóng mặc định sẽ nằm ở góc trên bên phải */}
+        <DialogHeader className="p-0">
           <DialogTitle className="text-xl">
-            Flashcards | {currentIndex + 1} / {totalCards}
+            Flashcards
           </DialogTitle>
-          
-          {/* Lựa chọn mặt trước */}
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="flashcard-side">Mặt trước: {isEnglishFront ? "English" : "Vietnamese"}</Label>
-            <Switch
-              id="flashcard-side"
-              checked={isEnglishFront}
-              onCheckedChange={setIsEnglishFront}
-              disabled={isUpdating}
-            />
-          </div>
-
         </DialogHeader>
 
+        {/* THÊM: Khu vực mới cho vị trí thẻ và tùy chọn mặt trước */}
+        <div className="flex items-center justify-between mt-2 mb-4 p-0"> 
+            {/* Vị trí thẻ hiện tại */}
+            <span className="text-lg font-medium text-gray-700">
+                Thẻ: {currentIndex + 1} / {totalCards}
+            </span>
+
+            {/* Lựa chọn mặt trước - Đã di chuyển ra khỏi DialogHeader */}
+            <div className="flex items-center space-x-2">
+                <Label htmlFor="flashcard-side" className="text-sm font-normal text-gray-500 select-none">
+                    Mặt trước: <strong className="font-semibold text-blue-600">{isEnglishFront ? "English" : "Vietnamese"}</strong>
+                </Label>
+                <Switch
+                    id="flashcard-side"
+                    checked={isEnglishFront}
+                    onCheckedChange={setIsEnglishFront}
+                    disabled={isUpdating}
+                />
+            </div>
+        </div>
+        
         {currentVocabulary ? (
           <div className="flex-1 flex flex-col justify-center items-center w-full">
             {/* Flashcard Component */}
