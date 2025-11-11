@@ -30,7 +30,7 @@ interface Vocabulary {
   steps: string;
 }
 
-interface EditVocabularyModalProps {
+interface AddUpdateVocabularyModalProps {
   vocabulary?: Vocabulary; // nếu undefined => add mới
   onUpdate?: (v: Vocabulary) => void;
 }
@@ -48,7 +48,7 @@ const PART_OF_SPEECH_OPTIONS = [
   "other"
 ];
 
-export default function EditVocabularyModal({ vocabulary, onUpdate }: EditVocabularyModalProps) {
+export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUpdateVocabularyModalProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<Vocabulary, "id" | "target">>({

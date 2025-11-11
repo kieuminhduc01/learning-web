@@ -46,7 +46,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import EditVocabularyModal from "@/components/custom/english/edit-update";
+import AddUpdateVocabularyModal from "@/components/custom/english/add-update";
 import FlashcardModal from "@/components/custom/english/flash-card"; // Import component FlashcardModal
 
 interface Vocabulary {
@@ -272,7 +272,7 @@ export default function Home() {
                 </Button>
               </FlashcardModal>
 
-              <EditVocabularyModal
+              <AddUpdateVocabularyModal
                 onUpdate={async () => {
                   await fetchVocabularies();
                 }}
@@ -381,11 +381,10 @@ export default function Home() {
                   currentData.map((v, index) => (
                     <TableRow
                       key={v.id}
-                      className={`transition-colors duration-150 ${
-                        index % 2 === 0
+                      className={`transition-colors duration-150 ${index % 2 === 0
                           ? "bg-white hover:bg-gray-100"
                           : "bg-gray-50 hover:bg-gray-100"
-                      }`}
+                        }`}
                     >
                       <TableCell className="w-12 text-center">
                         <Checkbox
@@ -420,8 +419,11 @@ export default function Home() {
                         {v.steps}
                       </TableCell>
                       <TableCell className="w-[80px] text-center">
-                        <EditVocabularyModal
+                        <AddUpdateVocabularyModal
                           vocabulary={v}
+                          onUpdate={async () => {
+                            await fetchVocabularies();
+                          }}
                         />
                       </TableCell>
                     </TableRow>

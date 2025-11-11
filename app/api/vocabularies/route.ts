@@ -125,38 +125,6 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: "Cập nhật hàng loạt thành công" });
     }
 
-    // --- Cập nhật 1 từ (Ví dụ từ Flashcard) ---
-    if (id && steps !== undefined) {
-        const newTarget = calculateNewTarget(steps); // Sử dụng hàm tính toán mới
-
-        // Cập nhật và yêu cầu Supabase trả về dữ liệu đã cập nhật
-        const { data, error } = await supabase
-            .from("vocabularies")
-            .update({ step: steps, target: newTarget })
-            .eq("id", id)
-            .select() // Thêm .select() để lấy dữ liệu sau khi update
-            .single(); // Lấy một object duy nhất
-
-        if (error) throw error;
-        
-        // Map dữ liệu để khớp với định dạng frontend
-        const updatedObject = {
-            id: data.id,
-            english: data.english,
-            vietnamese: data.vietnamese,
-            ipa: data.ipa,
-            example: data.example,
-            collection: data.collection,
-            partOfSpeech: data.part_of_speech,
-            target: data.target,
-            steps: data.step,
-        };
-        
-        // Trả về object đã cập nhật
-        return NextResponse.json(updatedObject);
-    }
-    
-    // --- Cập nhật 1 từ (Ví dụ từ Edit Modal) ---
     if (id) {
         const { error } = await supabase
           .from("vocabularies")
