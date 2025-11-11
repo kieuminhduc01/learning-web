@@ -382,8 +382,8 @@ export default function Home() {
                     <TableRow
                       key={v.id}
                       className={`transition-colors duration-150 ${index % 2 === 0
-                          ? "bg-white hover:bg-gray-100"
-                          : "bg-gray-50 hover:bg-gray-100"
+                        ? "bg-white hover:bg-gray-100"
+                        : "bg-gray-50 hover:bg-gray-100"
                         }`}
                     >
                       <TableCell className="w-12 text-center">
@@ -399,7 +399,7 @@ export default function Home() {
                         {v.vietnamese}
                       </TableCell>
                       <TableCell className="w-[120px] text-center font-mono text-xs text-gray-600">
-                        {v.ipa}
+                        /{v.ipa ? v.ipa : "-"}/
                       </TableCell>
                       <TableCell className="w-[250px] text-left text-sm italic break-words whitespace-normal">
                         {v.example}
