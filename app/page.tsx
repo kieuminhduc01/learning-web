@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
 import {
   Table,
@@ -87,6 +87,7 @@ export default function Home() {
   }, [search]);
 
   const fetchVocabularies = async () => {
+    console.log("Fetching vocabularies...");
     setLoading(true);
     try {
       const res = await fetch("/api/vocabularies");
@@ -240,7 +241,6 @@ export default function Home() {
         </TabsList>
 
         <TabsContent value={activeTab}>
-          {/* Thanh công cụ */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="relative w-full sm:w-1/2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -260,6 +260,7 @@ export default function Home() {
                 disabled={selected.length === 0}
                 onUpdateStep={async () => {
                 }}
+                onClose={fetchVocabularies}
               >
                 <Button
                   variant="outline"
@@ -406,17 +407,17 @@ export default function Home() {
                       </TableCell>
                       <TableCell className="w-[150px] text-center">
                         <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                          {v.collection}
+                          {v.collection?v.collection:"-"}
                         </span>
                       </TableCell>
                       <TableCell className="w-[150px] text-center text-xs">
-                        {v.partOfSpeech}
+                        {v.partOfSpeech? v.partOfSpeech : "-"}
                       </TableCell>
                       <TableCell className="w-[120px] text-center">
                         {v.target ? dayjs(v.target).format("YYYY-MM-DD") : "-"}
                       </TableCell>
                       <TableCell className="w-[80px] text-center font-mono text-xs">
-                        {v.steps}
+                        {v.steps? v.steps : "-"}
                       </TableCell>
                       <TableCell className="w-[80px] text-center">
                         <AddUpdateVocabularyModal
@@ -431,7 +432,7 @@ export default function Home() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={10} className="text-center py-6 text-gray-500">
-                      Không tìm thấy kết quả nào phù hợp.
+                      Không có dữ liệu.
                     </TableCell>
                   </TableRow>
                 )}

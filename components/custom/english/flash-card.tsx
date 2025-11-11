@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo, ReactNode, useEffect } from "react"; 
+import { useState, useMemo, ReactNode, useEffect } from "react";
 import dayjs from "dayjs";
 import {
   Dialog,
@@ -12,17 +12,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, RotateCw, Check, Clock, ChevronDown } from "lucide-react"; 
-import { Switch } from "@/components/ui/switch"; 
+import { ChevronLeft, ChevronRight, RotateCw, Check, Clock, ChevronDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 // Thêm các component DropdownMenu
-import { 
+import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel 
+  DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 
 
@@ -42,28 +42,29 @@ interface FlashcardModalProps {
   vocabularies: Vocabulary[];
   children: ReactNode;
   disabled: boolean;
-  onUpdateStep: () => Promise<void>; 
+  onUpdateStep: () => Promise<void>;
+  onClose: () => void;
 }
 
 // Các lựa chọn Step theo yêu cầu của bạn
 const FLASHCARD_STEP_OPTIONS = [
-    { label: "Quên", step: "0", variant: "destructive" as const },
-    { label: "Mới Học", step: "1", variant: "secondary" as const },
-    { label: "Cần Cố", step: "2", variant: "outline" as const },
-    { label: "Khó", step: "3-6", variant: "outline" as const },
-    { label: "Ổn", step: "7-15", variant: "default" as const },
-    { label: "Dễ", step: "16-30", variant: "default" as const },
-    { label: "Rất Dễ", step: "30-50", variant: "default" as const },
-    { label: "Xong", step: "0-50", variant: "default" as const },
+  { label: "Quên", step: "0", variant: "destructive" as const },
+  { label: "Mới Học", step: "1", variant: "secondary" as const },
+  { label: "Cần Cố", step: "2", variant: "outline" as const },
+  { label: "Khó", step: "3-6", variant: "outline" as const },
+  { label: "Ổn", step: "7-15", variant: "default" as const },
+  { label: "Dễ", step: "16-30", variant: "default" as const },
+  { label: "Rất Dễ", step: "30-50", variant: "default" as const },
+  { label: "Xong", step: "0-50", variant: "default" as const },
 ];
 
 // Component Flashcard
-const Flashcard: React.FC<{ 
-    vocabulary: Vocabulary, 
-    isEnglishFront: boolean,
-    isFlipped: boolean, 
-    flipCard: () => void, 
-    isUpdating: boolean
+const Flashcard: React.FC<{
+  vocabulary: Vocabulary,
+  isEnglishFront: boolean,
+  isFlipped: boolean,
+  flipCard: () => void,
+  isUpdating: boolean
 }> = ({ vocabulary, isEnglishFront, isFlipped, flipCard, isUpdating }) => {
 
   // MẶT 1 (English Content)
@@ -102,17 +103,17 @@ const Flashcard: React.FC<{
           Collection: {vocabulary.collection || "—"}
         </span>
         <div className="space-x-4">
-            <span>
-              Step: <strong className="text-lg text-red-600">{vocabulary.steps || "0"}</strong>
-            </span>
-            <span>
-                Target: <strong className="text-lg text-red-600">{vocabulary.target ? dayjs(vocabulary.target).format("YYYY-MM-DD") : "—"}</strong>
-            </span>
+          <span>
+            Step: <strong className="text-lg text-red-600">{vocabulary.steps || "0"}</strong>
+          </span>
+          <span>
+            Target: <strong className="text-lg text-red-600">{vocabulary.target ? dayjs(vocabulary.target).format("YYYY-MM-DD") : "—"}</strong>
+          </span>
         </div>
       </div>
     </div>
   );
-  
+
   // Xác định nội dung Mặt trước và Mặt sau dựa trên isEnglishFront
   const FrontContent = isEnglishFront ? EnglishContent : VietnameseContent;
   const BackContent = isEnglishFront ? VietnameseContent : EnglishContent;
@@ -125,9 +126,8 @@ const Flashcard: React.FC<{
         onClick={flipCard}
       >
         <div
-          className={`relative w-full h-full transform-style-3d transition-transform duration-700 ${
-            isFlipped ? "rotate-y-180" : ""
-          }`}
+          className={`relative w-full h-full transform-style-3d transition-transform duration-700 ${isFlipped ? "rotate-y-180" : ""
+            }`}
         >
           {/* Front Face (Mặt hiện ra đầu tiên) */}
           <div className="absolute w-full h-full backface-hidden flex items-center justify-center p-4">
@@ -139,11 +139,11 @@ const Flashcard: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* Nút lật card */}
       <Button
         onClick={(e) => {
-          e.stopPropagation(); 
+          e.stopPropagation();
           flipCard();
         }}
         variant="outline"
@@ -164,31 +164,34 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
   children,
   disabled,
   onUpdateStep,
+  onClose
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false); 
-  const [isUpdating, setIsUpdating] = useState(false); 
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [localVocabularies, setLocalVocabularies] = useState<Vocabulary[]>([]);
-  const [isEnglishFront, setIsEnglishFront] = useState(true); 
+  const [isEnglishFront, setIsEnglishFront] = useState(true);
 
+  console.log("FlashcardModal render with vocabularies:", vocabularies);
+  
   // Đồng bộ hóa danh sách từ vựng khi prop thay đổi hoặc modal mở
   useEffect(() => {
     if (isOpen) {
-        setLocalVocabularies(vocabularies);
-        setCurrentIndex(0);
-        setIsFlipped(false); 
+      setLocalVocabularies(vocabularies);
+      setCurrentIndex(0);
+      setIsFlipped(false);
     }
   }, [vocabularies, isOpen]);
-  
+
   // Reset index khi danh sách từ thay đổi
   useMemo(() => {
     if (isOpen) {
-        setCurrentIndex(0);
-        setIsFlipped(false); 
+      setCurrentIndex(0);
+      setIsFlipped(false);
     }
   }, [vocabularies.length, isOpen]);
-  
+
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % localVocabularies.length);
     setIsFlipped(false); // Reset lật thẻ khi chuyển sang thẻ mới
@@ -200,53 +203,59 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
     );
     setIsFlipped(false); // Reset lật thẻ khi chuyển sang thẻ mới
   };
-  
+
   const flipCard = () => setIsFlipped((prev) => !prev);
-  
+
   const updateVocabularyStep = async (stepValue: string, id: string) => {
     setIsUpdating(true); // Bắt đầu cập nhật
     try {
-        const res = await fetch("/api/vocabularies", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, steps: stepValue }), 
-        });
-        
-        if (res.ok) {
-            const updatedVocab = await res.json() as Vocabulary;
-            
-            // 1. Cập nhật state cục bộ để hiển thị Target/Step mới ngay lập tức
-            setLocalVocabularies(prevVocabs =>
-                prevVocabs.map(v => (v.id === id ? updatedVocab : v))
-            );
+      const res = await fetch("/api/vocabularies", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, steps: stepValue }),
+      });
 
-            // 2. GIỮ NGUYÊN TRẠNG THÁI LẬT (YÊU CẦU NGƯỜI DÙNG)
+      if (res.ok) {
+        const updatedVocab = await res.json() as Vocabulary;
 
-            // 3. Gọi hàm refresh dữ liệu gốc (để cập nhật bảng chính)
-            await onUpdateStep(); 
+        // 1. Cập nhật state cục bộ để hiển thị Target/Step mới ngay lập tức
+        setLocalVocabularies(prevVocabs =>
+          prevVocabs.map(v => (v.id === id ? updatedVocab : v))
+        );
 
-        } else {
-            throw new Error("Cập nhật thất bại!");
-        }
+        // 2. GIỮ NGUYÊN TRẠNG THÁI LẬT (YÊU CẦU NGƯỜI DÙNG)
+
+        // 3. Gọi hàm refresh dữ liệu gốc (để cập nhật bảng chính)
+        await onUpdateStep();
+
+      } else {
+        throw new Error("Cập nhật thất bại!");
+      }
     } catch (error) {
-        console.error("Lỗi khi cập nhật Step:", error);
-        alert("Không thể cập nhật Step. Vui lòng thử lại!");
+      console.error("Lỗi khi cập nhật Step:", error);
+      alert("Không thể cập nhật Step. Vui lòng thử lại!");
     } finally {
-        setIsUpdating(false); // Kết thúc cập nhật
+      setIsUpdating(false); // Kết thúc cập nhật
     }
   };
 
+  const handleModalOpenChange = (open: boolean): void => {
+    setIsOpen(open);
+    if (!open) {
+      onClose();
+    }
+  };
 
   const currentVocabulary = localVocabularies[currentIndex];
   const totalCards = localVocabularies.length;
 
-  if (totalCards === 0 && !disabled && isOpen) return null;
+  // if (totalCards === 0 && !disabled && isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[950px] max-w-[95%] p-4 sm:p-6 h-[90vh] flex flex-col">
-        
+
         {/* SỬA: DialogHeader chỉ chứa tiêu đề, nút đóng mặc định sẽ nằm ở góc trên bên phải */}
         <DialogHeader className="p-0">
           <DialogTitle className="text-xl">
@@ -255,81 +264,81 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
         </DialogHeader>
 
         {/* THÊM: Khu vực mới cho vị trí thẻ và tùy chọn mặt trước */}
-        <div className="flex items-center justify-between mt-2 mb-4 p-0"> 
-            {/* Vị trí thẻ hiện tại */}
-            <span className="text-lg font-medium text-gray-700">
-                Thẻ: {currentIndex + 1} / {totalCards}
-            </span>
+        <div className="flex items-center justify-between mt-2 mb-4 p-0">
+          {/* Vị trí thẻ hiện tại */}
+          <span className="text-lg font-medium text-gray-700">
+            Thẻ: {currentIndex + 1} / {totalCards}
+          </span>
 
-            {/* Lựa chọn mặt trước - Đã di chuyển ra khỏi DialogHeader */}
-            <div className="flex items-center space-x-2">
-                <Label htmlFor="flashcard-side" className="text-sm font-normal text-gray-500 select-none">
-                    Mặt trước: <strong className="font-semibold text-blue-600">{isEnglishFront ? "English" : "Vietnamese"}</strong>
-                </Label>
-                <Switch
-                    id="flashcard-side"
-                    checked={isEnglishFront}
-                    onCheckedChange={setIsEnglishFront}
-                    disabled={isUpdating}
-                />
-            </div>
+          {/* Lựa chọn mặt trước - Đã di chuyển ra khỏi DialogHeader */}
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="flashcard-side" className="text-sm font-normal text-gray-500 select-none">
+              Mặt trước: <strong className="font-semibold text-blue-600">{isEnglishFront ? "English" : "Vietnamese"}</strong>
+            </Label>
+            <Switch
+              id="flashcard-side"
+              checked={isEnglishFront}
+              onCheckedChange={setIsEnglishFront}
+              disabled={isUpdating}
+            />
+          </div>
         </div>
-        
+
         {currentVocabulary ? (
           <div className="flex-1 flex flex-col justify-center items-center w-full">
             {/* Flashcard Component */}
-            <Flashcard 
-                key={currentVocabulary.id} 
-                vocabulary={currentVocabulary} 
-                isEnglishFront={isEnglishFront} 
-                isFlipped={isFlipped}
-                flipCard={flipCard}
-                isUpdating={isUpdating}
+            <Flashcard
+              key={currentVocabulary.id}
+              vocabulary={currentVocabulary}
+              isEnglishFront={isEnglishFront}
+              isFlipped={isFlipped}
+              flipCard={flipCard}
+              isUpdating={isUpdating}
             />
 
             {/* Step Selection (DROPDOWN REPLACEMENT) - LUÔN HIỂN THỊ */}
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button 
-                        variant="default" 
-                        size="lg" 
-                        className="mt-6 w-[200px]"
-                        // Dropdown luôn hiển thị, nhưng nút bị disabled nếu chưa lật thẻ
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="mt-6 w-[200px]"
+                // Dropdown luôn hiển thị, nhưng nút bị disabled nếu chưa lật thẻ
+                >
+                  {isUpdating ? (
+                    <>
+                      <Clock className="w-4 h-4 animate-spin mr-2" />
+                      Đang Lưu Step...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5 mr-2" />
+                      {/* Thay đổi text để nhắc nhở người dùng lật thẻ nếu cần */}
+                      Chọn Step Mới
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              {/* Content chỉ hiển thị khi DropdownMenuTrigger không bị disabled */}
+              {!isUpdating && (
+                <DropdownMenuContent className="w-56" align="center">
+                  <DropdownMenuLabel>Đánh giá độ khó (Target: Ngày)</DropdownMenuLabel>
+                  {FLASHCARD_STEP_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.step}
+                      onClick={() => updateVocabularyStep(option.step, currentVocabulary.id)}
+                      className={`cursor-pointer ${option.variant === 'destructive' ? 'text-red-600 focus:bg-red-50' : ''}`}
+                      disabled={isUpdating}
                     >
-                        {isUpdating ? (
-                            <>
-                                <Clock className="w-4 h-4 animate-spin mr-2" />
-                                Đang Lưu Step...
-                            </>
-                        ) : (
-                            <>
-                                <Check className="w-5 h-5 mr-2" />
-                                {/* Thay đổi text để nhắc nhở người dùng lật thẻ nếu cần */}
-                                Chọn Step Mới
-                                <ChevronDown className="w-4 h-4 ml-2" />
-                            </>
-                        )}
-                    </Button>
-                </DropdownMenuTrigger>
-                {/* Content chỉ hiển thị khi DropdownMenuTrigger không bị disabled */}
-                {!isUpdating && (
-                  <DropdownMenuContent className="w-56" align="center">
-                      <DropdownMenuLabel>Đánh giá độ khó (Target: Ngày)</DropdownMenuLabel>
-                      {FLASHCARD_STEP_OPTIONS.map((option) => (
-                          <DropdownMenuItem
-                              key={option.step}
-                              onClick={() => updateVocabularyStep(option.step, currentVocabulary.id)}
-                              className={`cursor-pointer ${option.variant === 'destructive' ? 'text-red-600 focus:bg-red-50' : ''}`}
-                              disabled={isUpdating}
-                          >
-                              <div className="flex justify-between w-full items-center">
-                                  <span>{option.label}</span>
-                                  <span className="text-xs opacity-70">({option.step} ngày)</span>
-                              </div>
-                          </DropdownMenuItem>
-                      ))}
-                  </DropdownMenuContent>
-                )}
+                      <div className="flex justify-between w-full items-center">
+                        <span>{option.label}</span>
+                        <span className="text-xs opacity-70">({option.step} ngày)</span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              )}
             </DropdownMenu>
 
             {/* Navigation Controls */}
