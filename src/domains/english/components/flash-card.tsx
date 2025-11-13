@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, RotateCw, Check, Clock, ChevronDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {STEP_OPTIONS} from "@/src/domains/english/lib/constants";
 
 import {
   DropdownMenu,
@@ -35,17 +36,6 @@ interface FlashcardModalProps {
   onUpdateStep: () => Promise<void>;
   onClose: () => void;
 }
-
-const FLASHCARD_STEP_OPTIONS = [
-  { label: "Quên", step: "0", variant: "destructive" as const },
-  { label: "Mới Học", step: "1", variant: "secondary" as const },
-  { label: "Cần Cố", step: "2", variant: "outline" as const },
-  { label: "Khó", step: "3-6", variant: "outline" as const },
-  { label: "Ổn", step: "7-15", variant: "default" as const },
-  { label: "Dễ", step: "16-30", variant: "default" as const },
-  { label: "Rất Dễ", step: "30-50", variant: "default" as const },
-  { label: "Xong", step: "0-50", variant: "default" as const },
-];
 
 const Flashcard: React.FC<{
   vocabulary: Vocabulary,
@@ -101,7 +91,6 @@ const Flashcard: React.FC<{
 
   const FrontContent = isEnglishFront ? EnglishContent : VietnameseContent;
   const BackContent = isEnglishFront ? VietnameseContent : EnglishContent;
-  const FrontLabel = isEnglishFront ? "English" : "Vietnamese";
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -121,21 +110,6 @@ const Flashcard: React.FC<{
           </div>
         </div>
       </div>
-
-      {/* Nút lật card */}
-      <Button
-        onClick={(e) => {
-          e.stopPropagation();
-          flipCard();
-        }}
-        variant="outline"
-        className="mt-4"
-        size="sm"
-        disabled={isUpdating}
-      >
-        <RotateCw className="w-4 h-4 mr-2" />
-        {isFlipped ? `Quay lại mặt trước (${FrontLabel})` : `Xem mặt sau`}
-      </Button>
     </div>
   );
 };
@@ -283,12 +257,12 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
               </DropdownMenuTrigger>
               {!isUpdating && (
                 <DropdownMenuContent className="w-56" align="center">
-                  <DropdownMenuLabel>Đánh giá độ khó (Target: Ngày)</DropdownMenuLabel>
-                  {FLASHCARD_STEP_OPTIONS.map((option) => (
+                  <DropdownMenuLabel>Đánh giá độ khó</DropdownMenuLabel>
+                  {STEP_OPTIONS.map((option) => (
                     <DropdownMenuItem
                       key={option.step}
                       onClick={() => updateVocabularyStep(option.step, currentVocabulary.id)}
-                      className={`cursor-pointer ${option.variant === 'destructive' ? 'text-red-600 focus:bg-red-50' : ''}`}
+                      className={'cursor-pointer'}
                       disabled={isUpdating}
                     >
                       <div className="flex justify-between w-full items-center">

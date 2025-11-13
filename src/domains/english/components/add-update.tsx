@@ -17,7 +17,7 @@ import "@/utils/time";
 import { Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v7 as uuidv7 } from 'uuid';
-
+import { STEP_OPTIONS } from "@/src/domains/english/lib/constants";
 import { addDays, formatTime } from "@/utils/time";
 
 interface AddUpdateVocabularyModalProps {
@@ -25,7 +25,6 @@ interface AddUpdateVocabularyModalProps {
   onUpdate?: (v: Vocabulary) => void;
 }
 
-const STEP_OPTIONS = ["0", "1", "2", "3-6", "7-15", "16-30", "30-50", "0-50"];
 const PART_OF_SPEECH_OPTIONS = [
   "noun",
   "pronoun",
@@ -207,8 +206,8 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {STEP_OPTIONS.map((step) => (
-                    <SelectItem key={step} value={step}>{step}</SelectItem>
+                  {STEP_OPTIONS.map((option) => (
+                    <SelectItem key={option.step} value={option.step}>{option.step}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
