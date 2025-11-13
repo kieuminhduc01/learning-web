@@ -8,25 +8,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-/**
- * Tính toán Target date dựa trên giá trị Step (có thể là số hoặc dải số).
- * Step = "1" => target = today + 1 day
- * Step = "7-15" => target = today + random(7 to 15) days
- */
-function calculateNewTarget(steps: string): string {
+function calculateNewTarget(step: string): string {
   const today = dayjs().startOf('day');
   let daysToAdd = 0;
 
-  const parts = steps.split('-');
+  const parts = step.split('-');
 
   if (parts.length === 1) {
     // Xử lý các step là số đơn: "0", "1", "2"
-    daysToAdd = parseInt(steps, 10);
+    daysToAdd = parseInt(step, 10);
   } else if (parts.length === 2) {
     // Xử lý các step là dải số: "3-6", "7-15", "0-50"
     const min = parseInt(parts[0], 10);
     const max = parseInt(parts[1], 10);
-    
+
     if (!isNaN(min) && !isNaN(max) && min <= max) {
       // Tạo số ngày ngẫu nhiên trong dải [min, max]
       daysToAdd = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -71,7 +66,7 @@ export async function GET() {
     collection: item.collection,
     partOfSpeech: item.part_of_speech,
     target: item.target,
-    steps: item.step,
+    step: item.step,
   }));
 
   return NextResponse.json(mappedData);
@@ -109,40 +104,42 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
 
-    // Cập nhật một hoặc nhiều từ
-    const { id, ids, english, vietnamese, ipa, example, collection, partOfSpeech, steps, target } = body;
+    const { id, ids, english, vietnamese, ipa, example, collection, partOfSpeech, step } = body;
 
-    // --- Cập nhật hàng loạt (Batch update, ví dụ từ Toolbar) ---
-    if (Array.isArray(ids) && ids.length > 0 && steps) {
-      const newTarget = calculateNewTarget(steps); // Sử dụng hàm tính toán mới
+    const newTarget = calculateNewTarget(step);
 
-      const { error } = await supabase
+    if (Array.isArray(ids) && ids.length > 0 && step) {
+
+      const { error, data } = await supabase
         .from("vocabularies")
-        .update({ step: steps, target: newTarget })
+        .update({ step, target: newTarget })
         .in("id", ids);
 
       if (error) throw error;
-      return NextResponse.json({ message: "Cập nhật hàng loạt thành công" });
+      console.log("Updated data:", data);
+      return NextResponse.json(data);
     }
 
     if (id) {
-        const { error } = await supabase
-          .from("vocabularies")
-          .update({
-            english,
-            vietnamese,
-            ipa,
-            example,
-            collection,
-            part_of_speech: partOfSpeech,
-            step: steps,
-            target,
-          })
-          .eq("id", id);
-          
-        if (error) throw error;
+      const { error, data } = await supabase
+        .from("vocabularies")
+        .update({
+          english,
+          vietnamese,
+          ipa,
+          example,
+          collection,
+          part_of_speech: partOfSpeech,
+          step,
+          target: newTarget,
+        })
+        .eq("id", id)
+        .select()
+        .single();
 
-        return NextResponse.json({ message: "Cập nhật thành công" });
+      if (error) throw error;
+
+      return NextResponse.json(data);
     }
 
     return NextResponse.json({ error: "Yêu cầu cập nhật không hợp lệ" }, { status: 400 });
@@ -156,10 +153,9 @@ export async function PATCH(request: Request) {
   }
 }
 
-// POST: Thêm mới từ vựng
 export async function POST(request: Request) {
   try {
-    const { english, vietnamese, ipa, example, collection, partOfSpeech, steps, target } =
+    const { english, vietnamese, ipa, example, collection, partOfSpeech, step, target } =
       await request.json();
 
     if (!english || !vietnamese) {
@@ -168,9 +164,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
-    // Tính target ban đầu nếu không có target được cung cấp
-    const initialStep = steps || "0";
+
+    const initialStep = step || "0";
     const initialTarget = target || calculateNewTarget(initialStep);
 
 

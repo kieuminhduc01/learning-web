@@ -1,5 +1,3 @@
-// src/components/custom/english/FlashcardModal.tsx
-
 "use client";
 
 import { useState, useMemo, ReactNode, useEffect } from "react";
@@ -16,7 +14,6 @@ import { ChevronLeft, ChevronRight, RotateCw, Check, Clock, ChevronDown } from "
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-// Thêm các component DropdownMenu
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -25,18 +22,11 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 
+import "@/utils/time";
+import "@/utils/random";
 
-interface Vocabulary {
-  id: string;
-  english: string;
-  vietnamese: string;
-  ipa: string;
-  example: string;
-  collection: string;
-  partOfSpeech: string;
-  target: string;
-  steps: string;
-}
+
+
 
 interface FlashcardModalProps {
   vocabularies: Vocabulary[];
@@ -46,7 +36,6 @@ interface FlashcardModalProps {
   onClose: () => void;
 }
 
-// Các lựa chọn Step theo yêu cầu của bạn
 const FLASHCARD_STEP_OPTIONS = [
   { label: "Quên", step: "0", variant: "destructive" as const },
   { label: "Mới Học", step: "1", variant: "secondary" as const },
@@ -58,7 +47,6 @@ const FLASHCARD_STEP_OPTIONS = [
   { label: "Xong", step: "0-50", variant: "default" as const },
 ];
 
-// Component Flashcard
 const Flashcard: React.FC<{
   vocabulary: Vocabulary,
   isEnglishFront: boolean,
@@ -67,7 +55,6 @@ const Flashcard: React.FC<{
   isUpdating: boolean
 }> = ({ vocabulary, isEnglishFront, isFlipped, flipCard, isUpdating }) => {
 
-  // MẶT 1 (English Content)
   const EnglishContent = (
     <div className="flex flex-col items-center p-8 text-center h-full">
       <h2 className="text-6xl font-extrabold text-blue-700 select-none break-words max-w-full">
@@ -84,7 +71,6 @@ const Flashcard: React.FC<{
     </div>
   );
 
-  // MẶT 2 (Vietnamese Content)
   const VietnameseContent = (
     <div className="flex flex-col p-8 h-full space-y-4">
       <h3 className="text-4xl font-bold text-green-700 border-b pb-2 mb-2 select-none break-words max-w-full">
@@ -95,7 +81,6 @@ const Flashcard: React.FC<{
       </p>
 
       <div className="flex-1">
-        {/* Nội dung trống hoặc có thể thêm ghi chú nếu cần */}
       </div>
 
       <div className="mt-auto pt-4 border-t text-base text-gray-600 flex justify-between select-none">
@@ -104,7 +89,7 @@ const Flashcard: React.FC<{
         </span>
         <div className="space-x-4">
           <span>
-            Step: <strong className="text-lg text-red-600">{vocabulary.steps || "0"}</strong>
+            Step: <strong className="text-lg text-red-600">{vocabulary.step || "0"}</strong>
           </span>
           <span>
             Target: <strong className="text-lg text-red-600">{vocabulary.target ? dayjs(vocabulary.target).format("YYYY-MM-DD") : "—"}</strong>
@@ -114,7 +99,6 @@ const Flashcard: React.FC<{
     </div>
   );
 
-  // Xác định nội dung Mặt trước và Mặt sau dựa trên isEnglishFront
   const FrontContent = isEnglishFront ? EnglishContent : VietnameseContent;
   const BackContent = isEnglishFront ? VietnameseContent : EnglishContent;
   const FrontLabel = isEnglishFront ? "English" : "Vietnamese";
@@ -129,11 +113,9 @@ const Flashcard: React.FC<{
           className={`relative w-full h-full transform-style-3d transition-transform duration-700 ${isFlipped ? "rotate-y-180" : ""
             }`}
         >
-          {/* Front Face (Mặt hiện ra đầu tiên) */}
           <div className="absolute w-full h-full backface-hidden flex items-center justify-center p-4">
             {FrontContent}
           </div>
-          {/* Back Face (Mặt bị ẩn) */}
           <div className="absolute w-full h-full backface-hidden transform rotate-y-180 flex items-center justify-center p-4">
             {BackContent}
           </div>
@@ -162,7 +144,6 @@ const Flashcard: React.FC<{
 const FlashcardModal: React.FC<FlashcardModalProps> = ({
   vocabularies,
   children,
-  disabled,
   onUpdateStep,
   onClose
 }) => {
@@ -173,9 +154,6 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
   const [localVocabularies, setLocalVocabularies] = useState<Vocabulary[]>([]);
   const [isEnglishFront, setIsEnglishFront] = useState(true);
 
-  console.log("FlashcardModal render with vocabularies:", vocabularies);
-  
-  // Đồng bộ hóa danh sách từ vựng khi prop thay đổi hoặc modal mở
   useEffect(() => {
     if (isOpen) {
       setLocalVocabularies(vocabularies);
@@ -184,7 +162,6 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
     }
   }, [vocabularies, isOpen]);
 
-  // Reset index khi danh sách từ thay đổi
   useMemo(() => {
     if (isOpen) {
       setCurrentIndex(0);
@@ -194,38 +171,32 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % localVocabularies.length);
-    setIsFlipped(false); // Reset lật thẻ khi chuyển sang thẻ mới
+    setIsFlipped(false);
   };
 
   const goToPrev = () => {
     setCurrentIndex((prev) =>
       prev === 0 ? localVocabularies.length - 1 : prev - 1
     );
-    setIsFlipped(false); // Reset lật thẻ khi chuyển sang thẻ mới
+    setIsFlipped(false);
   };
 
   const flipCard = () => setIsFlipped((prev) => !prev);
 
   const updateVocabularyStep = async (stepValue: string, id: string) => {
-    setIsUpdating(true); // Bắt đầu cập nhật
+    setIsUpdating(true);
     try {
       const res = await fetch("/api/vocabularies", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, steps: stepValue }),
+        body: JSON.stringify({ id, step: stepValue }),
       });
 
       if (res.ok) {
-        const updatedVocab = await res.json() as Vocabulary;
-
-        // 1. Cập nhật state cục bộ để hiển thị Target/Step mới ngay lập tức
+        const updatedVocabulary = await res.json() as Vocabulary;
         setLocalVocabularies(prevVocabs =>
-          prevVocabs.map(v => (v.id === id ? updatedVocab : v))
+          prevVocabs.map(v => (v.id === id ? updatedVocabulary : v))
         );
-
-        // 2. GIỮ NGUYÊN TRẠNG THÁI LẬT (YÊU CẦU NGƯỜI DÙNG)
-
-        // 3. Gọi hàm refresh dữ liệu gốc (để cập nhật bảng chính)
         await onUpdateStep();
 
       } else {
@@ -249,28 +220,22 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
   const currentVocabulary = localVocabularies[currentIndex];
   const totalCards = localVocabularies.length;
 
-  // if (totalCards === 0 && !disabled && isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[950px] max-w-[95%] p-4 sm:p-6 h-[90vh] flex flex-col">
 
-        {/* SỬA: DialogHeader chỉ chứa tiêu đề, nút đóng mặc định sẽ nằm ở góc trên bên phải */}
         <DialogHeader className="p-0">
           <DialogTitle className="text-xl">
             Flashcards
           </DialogTitle>
         </DialogHeader>
 
-        {/* THÊM: Khu vực mới cho vị trí thẻ và tùy chọn mặt trước */}
         <div className="flex items-center justify-between mt-2 mb-4 p-0">
-          {/* Vị trí thẻ hiện tại */}
           <span className="text-lg font-medium text-gray-700">
             Thẻ: {currentIndex + 1} / {totalCards}
           </span>
 
-          {/* Lựa chọn mặt trước - Đã di chuyển ra khỏi DialogHeader */}
           <div className="flex items-center space-x-2">
             <Label htmlFor="flashcard-side" className="text-sm font-normal text-gray-500 select-none">
               Mặt trước: <strong className="font-semibold text-blue-600">{isEnglishFront ? "English" : "Vietnamese"}</strong>
@@ -286,7 +251,6 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
 
         {currentVocabulary ? (
           <div className="flex-1 flex flex-col justify-center items-center w-full">
-            {/* Flashcard Component */}
             <Flashcard
               key={currentVocabulary.id}
               vocabulary={currentVocabulary}
@@ -296,14 +260,12 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
               isUpdating={isUpdating}
             />
 
-            {/* Step Selection (DROPDOWN REPLACEMENT) - LUÔN HIỂN THỊ */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="default"
                   size="lg"
                   className="mt-6 w-[200px]"
-                // Dropdown luôn hiển thị, nhưng nút bị disabled nếu chưa lật thẻ
                 >
                   {isUpdating ? (
                     <>
@@ -313,14 +275,12 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
                   ) : (
                     <>
                       <Check className="w-5 h-5 mr-2" />
-                      {/* Thay đổi text để nhắc nhở người dùng lật thẻ nếu cần */}
                       Chọn Step Mới
                       <ChevronDown className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              {/* Content chỉ hiển thị khi DropdownMenuTrigger không bị disabled */}
               {!isUpdating && (
                 <DropdownMenuContent className="w-56" align="center">
                   <DropdownMenuLabel>Đánh giá độ khó (Target: Ngày)</DropdownMenuLabel>
@@ -341,7 +301,6 @@ const FlashcardModal: React.FC<FlashcardModalProps> = ({
               )}
             </DropdownMenu>
 
-            {/* Navigation Controls */}
             <div className={`flex gap-4 mt-4`}>
               <Button
                 onClick={goToPrev}

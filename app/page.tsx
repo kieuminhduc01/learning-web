@@ -46,20 +46,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import AddUpdateVocabularyModal from "@/components/custom/english/add-update";
-import FlashcardModal from "@/components/custom/english/flash-card"; // Import component FlashcardModal
-
-interface Vocabulary {
-  id: string;
-  english: string;
-  vietnamese: string;
-  ipa: string;
-  example: string;
-  collection: string;
-  partOfSpeech: string;
-  target: string;
-  steps: string;
-}
+import AddUpdateVocabularyModal from "@/src/domains/english/components/add-update";
+import FlashcardModal from "@/src/domains/english/components/flash-card";
+import { addDays } from "@/utils/time";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, "all"] as const;
 type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
@@ -109,13 +98,13 @@ export default function Home() {
     setSelected([]);
   }, [pageSize, debouncedSearch, activeTab]);
 
-  const today = dayjs().startOf("day");
+  const today = new Date();
 
   const filteredVocabularies = useMemo(() => {
     let data = vocabularies;
     if (activeTab === "due") {
       data = vocabularies.filter(
-        (v) => v.target && dayjs(v.target).isBefore(today.add(1, "day"), "day")
+        (v) => v.target && dayjs(v.target).isBefore(addDays(today,1), "day")
       );
     }
     if (!debouncedSearch) return data;
@@ -129,7 +118,7 @@ export default function Home() {
         v.collection,
         v.partOfSpeech,
         targetDate,
-        v.steps,
+        v.step,
       ]
         .join(" ")
         .toLowerCase();
@@ -216,7 +205,7 @@ export default function Home() {
     await fetch("/api/vocabularies", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: selected, steps: batchStep }),
+      body: JSON.stringify({ ids: selected, step: batchStep }),
     });
     setBatchStep("");
     await fetchVocabularies();
@@ -417,7 +406,7 @@ export default function Home() {
                         {v.target ? dayjs(v.target).format("YYYY-MM-DD") : "-"}
                       </TableCell>
                       <TableCell className="w-[80px] text-center font-mono text-xs">
-                        {v.steps? v.steps : "-"}
+                        {v.step? v.step : "-"}
                       </TableCell>
                       <TableCell className="w-[80px] text-center">
                         <AddUpdateVocabularyModal

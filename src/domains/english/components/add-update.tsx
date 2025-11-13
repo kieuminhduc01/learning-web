@@ -1,11 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -14,21 +9,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import "@/utils/time";
 import { Pencil, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { v7 as uuidv7 } from 'uuid';
 
-interface Vocabulary {
-  id: string;
-  english: string;
-  vietnamese: string;
-  ipa: string;
-  example: string;
-  collection: string;
-  partOfSpeech: string;
-  target: string;
-  steps: string;
-}
+import { addDays, formatTime } from "@/utils/time";
 
 interface AddUpdateVocabularyModalProps {
   vocabulary?: Vocabulary; // nếu undefined => add mới
@@ -49,6 +39,8 @@ const PART_OF_SPEECH_OPTIONS = [
 ];
 
 export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUpdateVocabularyModalProps) {
+  const now = new Date();
+
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<Vocabulary, "id" | "target">>({
@@ -58,21 +50,19 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
     example: "",
     collection: "",
     partOfSpeech: "",
-    steps: "0",
+    step: "0",
   });
-  const [target, setTarget] = useState(dayjs().format("YYYY-MM-DD"));
+  const [target, setTarget] = useState(now);
 
   useEffect(() => {
     if (vocabulary) {
-      // nếu edit => load dữ liệu
       const { target, ...rest } = vocabulary;
       setForm(rest);
-      setTarget(target || dayjs().format("YYYY-MM-DD"));
+      setTarget(new Date(target) || now);
     }
   }, [vocabulary]);
 
   const computeTarget = (step: string) => {
-    const today = dayjs();
     let daysToAdd = 0;
     if (step === "0") daysToAdd = 0;
     else if (step === "1") daysToAdd = 1;
@@ -85,12 +75,12 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
     } else {
       daysToAdd = Number(step) || 0;
     }
-    return today.add(daysToAdd, "day").format("YYYY-MM-DD");
+    return addDays(now,daysToAdd);
   };
 
-  const handleChange = (field: keyof typeof form, value: string) => {
+  const handleChange = (field: keyof typeof form, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (field === "steps") {
+    if (field === "step") {
       setTarget(computeTarget(value));
     }
   };
@@ -100,7 +90,7 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
     try {
       const dataToSend = {
         ...form,
-        target: computeTarget(form.steps),
+        target: computeTarget(form.step),
         id: vocabulary?.id || uuidv7(),
       };
       const res = await fetch("/api/vocabularies", {
@@ -109,10 +99,9 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
         body: JSON.stringify(dataToSend),
       });
       const data = await res.json();
-      onUpdate?.(data); // dùng cho cả add và edit
+      onUpdate?.(data); 
       setOpen(false);
       if (!vocabulary) {
-        // reset form nếu add mới
         setForm({
           english: "",
           vietnamese: "",
@@ -120,9 +109,9 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
           example: "",
           collection: "",
           partOfSpeech: "",
-          steps: "0",
+          step: "0",
         });
-        setTarget(dayjs().format("YYYY-MM-DD"));
+        setTarget(new Date());
       }
     } catch (err) {
       console.error(err);
@@ -211,8 +200,8 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
             <div className="flex-1">
               <Label>Step</Label>
               <Select
-                value={form.steps}
-                onValueChange={(v) => handleChange("steps", v)}
+                value={form.step}
+                onValueChange={(v) => handleChange("step", v)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -226,7 +215,7 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
             </div>
             <div className="flex-1">
               <Label>Target</Label>
-              <Input type="text" value={target} disabled />
+              <Input type="text" value={formatTime(target,"YYYY-MM-DD")} disabled />
             </div>
           </div>
         </div>
