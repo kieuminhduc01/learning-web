@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { v7 as uuidv7 } from 'uuid';
@@ -104,20 +105,38 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
 
-    const { id, ids, english, vietnamese, ipa, example, collection, partOfSpeech, step } = body;
+    const { id, ids, english, vietnamese, ipa, example, collection, partOfSpeech, step,target } = body;
 
-    const newTarget = calculateNewTarget(step);
-
+    
     if (Array.isArray(ids) && ids.length > 0 && step) {
-
-      const { error, data } = await supabase
+      
+      await Promise.all(ids.map(async id => {
+        const newTarget = calculateNewTarget(step);
+        const { error, data } = await supabase
         .from("vocabularies")
-        .update({ step, target: newTarget })
-        .in("id", ids);
+        .update({
+          english,
+          vietnamese,
+          ipa,
+          example,
+          collection,
+          part_of_speech: partOfSpeech,
+          step,
+          target: newTarget,
+        })
+        .eq("id", id)
+        .select()
+        .single();
+        if (error) throw error;
+      }));
+      // const { error, data } = await supabase
+      //   .from("vocabularies")
+      //   .update({ step, target: newTarget })
+      //   .in("id", ids);
 
-      if (error) throw error;
-      console.log("Updated data:", data);
-      return NextResponse.json(data);
+      // if (error) throw error;
+      // console.log("Updated data:", data);
+      return NextResponse.json('good request');
     }
 
     if (id) {
@@ -131,7 +150,7 @@ export async function PATCH(request: Request) {
           collection,
           part_of_speech: partOfSpeech,
           step,
-          target: newTarget,
+          target,
         })
         .eq("id", id)
         .select()

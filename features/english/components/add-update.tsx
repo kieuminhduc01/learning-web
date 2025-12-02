@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import "@/utils/time";
 import { Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v7 as uuidv7 } from 'uuid';
-import { STEP_OPTIONS } from "@/src/domains/english/lib/constants";
+import { STEP_OPTIONS } from "@/features/english/lib/constants";
 import { addDays, formatTime } from "@/utils/time";
 
 interface AddUpdateVocabularyModalProps {
@@ -89,7 +90,7 @@ export default function AddUpdateVocabularyModal({ vocabulary, onUpdate }: AddUp
     try {
       const dataToSend = {
         ...form,
-        target: computeTarget(form.step),
+        target,
         id: vocabulary?.id || uuidv7(),
       };
       const res = await fetch("/api/vocabularies", {

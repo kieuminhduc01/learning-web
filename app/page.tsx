@@ -45,9 +45,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-
-import AddUpdateVocabularyModal from "@/src/domains/english/components/add-update";
-import FlashcardModal from "@/src/domains/english/components/flash-card";
+import {FlashcardModal} from "@/features/english/components/flash-card-feature/flash-card-modal";
+import AddUpdateVocabularyModal from "@/features/english/components/add-update";
 import { addDays } from "@/utils/time";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, "all"] as const;
