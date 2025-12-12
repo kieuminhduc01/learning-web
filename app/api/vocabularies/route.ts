@@ -150,7 +150,7 @@ export async function PATCH(request: Request) {
           collection,
           part_of_speech: partOfSpeech,
           step,
-          target,
+          target:calculateNewTarget(step),
         })
         .eq("id", id)
         .select()
