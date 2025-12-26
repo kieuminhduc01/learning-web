@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-import { v7 as uuidv7 } from 'uuid';
-import dayjs from 'dayjs';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { v7 as uuidv7 } from "uuid";
+import dayjs from "dayjs";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,10 +10,10 @@ const supabase = createClient(
 );
 
 function calculateNewTarget(step: string): string {
-  const today = dayjs().startOf('day');
+  const today = dayjs().startOf("day");
   let daysToAdd = 0;
 
-  const parts = step.split('-');
+  const parts = step.split("-");
 
   if (parts.length === 1) {
     // Xử lý các step là số đơn: "0", "1", "2"
@@ -37,11 +37,11 @@ function calculateNewTarget(step: string): string {
   return today.add(daysToAdd, "day").format("YYYY-MM-DD");
 }
 
-
 export async function GET() {
   const { data, error } = await supabase
-    .from('vocabularies')
-    .select(`
+    .from("vocabularies")
+    .select(
+      `
       id,
       english,
       vietnamese,
@@ -51,8 +51,9 @@ export async function GET() {
       part_of_speech,
       target,
       step
-    `)
-    .order('target', { ascending: true });
+    `
+    )
+    .order("target", { ascending: true });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -105,30 +106,41 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
 
-    const { id, ids, english, vietnamese, ipa, example, collection, partOfSpeech, step,target } = body;
+    const {
+      id,
+      ids,
+      english,
+      vietnamese,
+      ipa,
+      example,
+      collection,
+      partOfSpeech,
+      step,
+    } = body;
+    console.log("Received PATCH body:", body);
 
-    
     if (Array.isArray(ids) && ids.length > 0 && step) {
-      
-      await Promise.all(ids.map(async id => {
-        const newTarget = calculateNewTarget(step);
-        const { error, data } = await supabase
-        .from("vocabularies")
-        .update({
-          english,
-          vietnamese,
-          ipa,
-          example,
-          collection,
-          part_of_speech: partOfSpeech,
-          step,
-          target: newTarget,
+      await Promise.all(
+        ids.map(async (id) => {
+          const newTarget = calculateNewTarget(step);
+          const { error, data } = await supabase
+            .from("vocabularies")
+            .update({
+              english,
+              vietnamese,
+              ipa,
+              example,
+              collection,
+              part_of_speech: partOfSpeech,
+              step,
+              target: newTarget,
+            })
+            .eq("id", id)
+            .select()
+            .single();
+          if (error) throw error;
         })
-        .eq("id", id)
-        .select()
-        .single();
-        if (error) throw error;
-      }));
+      );
       // const { error, data } = await supabase
       //   .from("vocabularies")
       //   .update({ step, target: newTarget })
@@ -136,9 +148,8 @@ export async function PATCH(request: Request) {
 
       // if (error) throw error;
       // console.log("Updated data:", data);
-      return NextResponse.json('good request');
+      return NextResponse.json("good request");
     }
-
     if (id) {
       const { error, data } = await supabase
         .from("vocabularies")
@@ -150,7 +161,7 @@ export async function PATCH(request: Request) {
           collection,
           part_of_speech: partOfSpeech,
           step,
-          target:calculateNewTarget(step),
+          target: calculateNewTarget(step),
         })
         .eq("id", id)
         .select()
@@ -158,11 +169,25 @@ export async function PATCH(request: Request) {
 
       if (error) throw error;
 
-      return NextResponse.json(data);
+      const mappedData = {
+        id: data.id,
+        english: data.english,
+        vietnamese: data.vietnamese,
+        ipa: data.ipa,
+        example: data.example,
+        collection: data.collection,
+        partOfSpeech: data.part_of_speech,
+        target: data.target,
+        step: data.step,
+      };
+
+      return NextResponse.json(mappedData);
     }
 
-    return NextResponse.json({ error: "Yêu cầu cập nhật không hợp lệ" }, { status: 400 });
-
+    return NextResponse.json(
+      { error: "Yêu cầu cập nhật không hợp lệ" },
+      { status: 400 }
+    );
   } catch (error: any) {
     console.error("Lỗi khi cập nhật:", error);
     return NextResponse.json(
@@ -174,8 +199,16 @@ export async function PATCH(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { english, vietnamese, ipa, example, collection, partOfSpeech, step, target } =
-      await request.json();
+    const {
+      english,
+      vietnamese,
+      ipa,
+      example,
+      collection,
+      partOfSpeech,
+      step,
+      target,
+    } = await request.json();
 
     if (!english || !vietnamese) {
       return NextResponse.json(
@@ -186,7 +219,6 @@ export async function POST(request: Request) {
 
     const initialStep = step || "0";
     const initialTarget = target || calculateNewTarget(initialStep);
-
 
     const newVocabulary = {
       id: uuidv7(),
